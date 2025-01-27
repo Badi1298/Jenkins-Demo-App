@@ -4,7 +4,11 @@ pipeline {
     stages {
         stage('w/o docker') {
             steps {
-                echo 'Without Docker'
+                sh '''
+                    echo 'Without Docker'
+                    ls -al
+                    touch container-no.txt
+                '''
             }
         }
 
@@ -12,11 +16,16 @@ pipeline {
             agent {
                 docker {
                     image 'node:18-alpine'
+                    reuseNode true
                 }
             }
             steps {
-                echo 'With Docker'
-                sh 'node --version'
+                sh '''
+                    echo 'With Docker'
+                    echo 'node --version'
+                    ls -al
+                    touch container-yes.txt
+                '''
             }
         }
     }
