@@ -53,7 +53,7 @@ pipeline {
                     npm install serve
                     node_modules/.bin/serve -s build &
                     sleep 10
-                    npx playwright test --reporter html=jest-results/index.html --reporter junit=jest-results/junit.xml
+                    npx playwright test --reporter=html
                 '''
             }
         }
