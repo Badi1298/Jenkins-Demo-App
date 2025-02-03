@@ -93,7 +93,7 @@ pipeline {
                     node_modules/.bin/netlify --version
                     node_modules/.bin/netlify status
                     node_modules/.bin/netlify deploy --dir=build --json > netlify-deploy-info.json
-                    node_modules/.bin/jq -r '.deploy_url' netlify-deploy-info.json
+                    node_modules/.bin/node-jq -r '.deploy_url' netlify-deploy-info.json
                 '''
             }
         }
