@@ -93,18 +93,11 @@ pipeline {
                     node_modules/.bin/netlify --version
                     node_modules/.bin/netlify status
                     node_modules/.bin/netlify deploy --dir=build --json > netlify-deploy-info.json
-                    node_modules/.bin/node-jq -r '.deploy_url' netlify-deploy-info.json
                 '''
             }
 
-            post {
-                always {
-                    script {
-                        def deployUrl = readFile('netlify-deploy-info.json').trim()
-                        echo "Deployed to: ${deployUrl}"
-                        env.CI_ENVIRONMENT_URL = deployUrl
-                    }
-                }
+            script {
+                env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' netlify-deploy-info.json", returnStdout: true).trim()               
             }
         }
 
@@ -117,7 +110,7 @@ pipeline {
             }
 
             environment {
-                CI_ENVIRONMENT_URL = '${env.CI_ENVIRONMENT_URL}'
+                STAGING_URL = "${env.STAGING_URL}"
             }
 
             steps {
