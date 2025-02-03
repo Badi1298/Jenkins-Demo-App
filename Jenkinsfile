@@ -97,6 +97,21 @@ pipeline {
             }
         }
 
+        stage('Approval') {
+            steps {
+                script {
+                    def userInput = input(
+                        id: 'userInput', message: 'Approve deployment?', parameters: [
+                            [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Do you approve the deployment?', name: 'APPROVE']
+                        ]
+                    )
+                    if (!userInput) {
+                        error('Deployment not approved. Exiting...')
+                    }
+                }
+            }
+        }
+
         stage('Deploy Production') {
             agent {
                 docker {
