@@ -94,11 +94,13 @@ pipeline {
                     node_modules/.bin/netlify status
                     node_modules/.bin/netlify deploy --dir=build --json > netlify-deploy-info.json
                 '''
+
+                script {
+                    env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' netlify-deploy-info.json", returnStdout: true).trim()               
+                }
             }
 
-            script {
-                env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' netlify-deploy-info.json", returnStdout: true).trim()               
-            }
+            
         }
 
         stage('Staging E2E Tests') {
