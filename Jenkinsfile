@@ -96,7 +96,42 @@ pipeline {
                     node_modules/.bin/node-jq -r '.deploy_url' netlify-deploy-info.json
                 '''
             }
+
+            post {
+                always {
+                    script {
+                        def deployUrl = readFile('netlify-deploy-info.json').trim()
+                        echo "Deployed to: ${deployUrl}"
+                        env.CI_ENVIRONMENT_URL = deployUrl
+                    }
+                }
+            }
         }
+
+        stage('Prod E2E Tests') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                }
+            }
+
+            environment {
+                CI_ENVIRONMENT_URL = '${env.CI_ENVIRONMENT_URL}'
+            }
+
+            steps {
+                sh '''
+                    npx playwright test --reporter=html
+                '''
+            }
+
+            post {
+                always {
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Staging E2E', reportTitles: '', useWrapperFileDirectly: true])
+                }
+            }
+        }   
 
         stage('Approval') {
             steps {
@@ -150,7 +185,7 @@ pipeline {
 
             post {
                 always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright E2E', reportTitles: '', useWrapperFileDirectly: true])
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Production E2E', reportTitles: '', useWrapperFileDirectly: true])
                 }
             }
         }   
