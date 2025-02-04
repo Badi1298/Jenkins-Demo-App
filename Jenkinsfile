@@ -4,6 +4,7 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = '784cc9c5-7265-456d-9ef6-1d10d2c7cb69'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        REACT_APP_VERSION = '1.2.3'
     }
 
     stages {
@@ -109,21 +110,6 @@ pipeline {
                 }
             }
         }   
-
-        stage('Approval') {
-            steps {
-                script {
-                    def userInput = input(
-                        id: 'userInput', message: 'Approve deployment?', parameters: [
-                            [$class: 'BooleanParameterDefinition', defaultValue: false, description: 'Do you approve the deployment?', name: 'APPROVE']
-                        ]
-                    )
-                    if (!userInput) {
-                        error('Deployment not approved. Exiting...')
-                    }
-                }
-            }
-        }
 
         stage('Deploy Production') {
             agent {
