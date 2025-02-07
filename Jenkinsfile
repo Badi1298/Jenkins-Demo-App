@@ -25,6 +25,7 @@ pipeline {
                     aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
                     aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                     aws configure set default.region us-east-1
+                    aws s3 ls
                 '''
             }
         }
@@ -32,7 +33,7 @@ pipeline {
         stage('Build') {
             agent {
                 docker {
-                    image 'node:18-alpine'
+                    image 'node:20-alpine'
                     reuseNode true
                 }
             }
@@ -54,7 +55,7 @@ pipeline {
                 stage('Unit Test') {
                     agent {
                         docker {
-                            image 'node:18-alpine'
+                            image 'node:20-alpine'
                             reuseNode true
                         }
                     }
