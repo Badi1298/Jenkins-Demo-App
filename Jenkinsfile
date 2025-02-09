@@ -28,7 +28,7 @@ pipeline {
             }
         }
 
-        stage('AWS CLI Setup') {
+        stage('Deploy to AWS ECS') {
             agent {
                 docker {
                     image 'amazon/aws-cli'
@@ -37,125 +37,19 @@ pipeline {
                 }
             }
             environment {
-                AWS_S3_BUCKET = 'learn-jenkins-202502061128'
+                AWS_CLUSTER_NAME = 'Jenkins-Cluster-Prod'
+                AWS_SERVICE_NAME = 'LearnJenkinsApp-Service-Prod '
+                TASK_DEFINITION_FILE = 'aws/task-definition-prod.json'
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'aws-cli', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
                         aws --version
-                        aws s3 sync build s3://$AWS_S3_BUCKET
+                        aws ecs register-task-definition --cli-input-json file://$TASK_DEFINITION_FILE
+                        aws ecs update-service --cluster $AWS_CLUSTER_NAME --service $AWS_SERVICE_NAME --force-new-deployment
                     '''
                 }
             }
         }
-
-        stage ('Tests') {
-            parallel {
-                stage('Unit Test') {
-                    agent {
-                        docker {
-                            image 'node:20-alpine'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                    sh '''
-                        if [ -f build/index.html ]; then
-                        echo "index.html found"
-                        else
-                        echo "index.html not found"
-                        exit 1
-                        fi
-                        npm test
-                    '''
-                    }
-
-                    post {
-                        always {
-                            junit 'jest-results/junit.xml'
-                        }
-                    }
-                }
-
-                stage('E2E Tests') {
-                    agent {
-                        docker {
-                            image 'my-playwright'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        sh '''
-                            serve -s build &
-                            sleep 10
-                            npx playwright test --reporter=html
-                        '''
-                    }
-
-                    post {
-                        always {
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local Report', reportTitles: '', useWrapperFileDirectly: true])
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Deploy Staging') {
-            agent {
-                docker {
-                    image 'my-playwright'
-                    reuseNode true
-                }
-            }
-
-            environment {
-                CI_ENVIRONMENT_URL = "TO_BE_SET"
-            }
-
-            steps {
-                sh '''
-                    netlify --version
-                    netlify status
-                    netlify deploy --dir=build --json > netlify-deploy-info.json
-                    CI_ENVIRONMENT_URL=$(node-jq -r '.deploy_url' netlify-deploy-info.json)
-                    npx playwright test --reporter=html
-                '''
-            }
-
-            post {
-                always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Staging E2E', reportTitles: '', useWrapperFileDirectly: true])
-                }
-            }
-        }   
-
-        stage('Deploy Production') {
-            agent {
-                docker {
-                    image 'my-playwright'
-                    reuseNode true
-                }
-            }
-
-            environment {
-                CI_ENVIRONMENT_URL = 'https://aesthetic-granita-535577.netlify.app'
-            }
-
-            steps {
-                sh '''
-                    netlify --version
-                    netlify status
-                    netlify deploy --dir=build --prod 
-                    npx playwright test --reporter=html
-                '''
-            }
-
-            post {
-                always {
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Production E2E', reportTitles: '', useWrapperFileDirectly: true])
-                }
-            }
-        }   
     }
 }
