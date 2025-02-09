@@ -45,7 +45,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'aws-cli', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
                     sh '''
                         aws --version
-                        aws ecs register-task-definition --cli-input-json file://$TASK_DEFINITION_FILE
+                        aws ecs register-task-definition --cli-input-json file://$TASK_DEFINITION_FILE --region us-east-1
                         aws ecs update-service --cluster $AWS_CLUSTER_NAME --service $AWS_SERVICE_NAME --force-new-deployment
                     '''
                 }
