@@ -44,31 +44,31 @@ pipeline {
             }
         }
 
-        stage('Deploy to AWS ECS') {
-            agent {
-                docker {
-                    image 'amazon/aws-cli'
-                    args '-u root --entrypoint=""'
-                    reuseNode true
-                }
-            }
-            environment {
-                AWS_CLUSTER_NAME = 'Jenkins-Cluster-Prod'
-                AWS_SERVICE_NAME = 'LearnJenkinsApp-Service-Prod'
-                AWS_TASK_NAME = 'LearnJenkinsApp-TaskDefinition-Prod'
-                TASK_DEFINITION_FILE = 'aws/task-definition-prod.json'
-            }
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'aws-cli', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
-                    sh '''
-                        aws --version
-                        yum install -y jq
-                        LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://$TASK_DEFINITION_FILE | jq '.taskDefinition.revision')
-                        aws ecs update-service --cluster $AWS_CLUSTER_NAME --service $AWS_SERVICE_NAME --task-definition $AWS_TASK_NAME:$LATEST_TD_REVISION
-                        aws ecs wait services-stable --cluster $AWS_CLUSTER_NAME --services $AWS_SERVICE_NAME
-                    '''
-                }
-            }
-        }
+        // stage('Deploy to AWS ECS') {
+        //     agent {
+        //         docker {
+        //             image 'amazon/aws-cli'
+        //             args '-u root --entrypoint=""'
+        //             reuseNode true
+        //         }
+        //     }
+        //     environment {
+        //         AWS_CLUSTER_NAME = 'Jenkins-Cluster-Prod'
+        //         AWS_SERVICE_NAME = 'LearnJenkinsApp-Service-Prod'
+        //         AWS_TASK_NAME = 'LearnJenkinsApp-TaskDefinition-Prod'
+        //         TASK_DEFINITION_FILE = 'aws/task-definition-prod.json'
+        //     }
+        //     steps {
+        //         withCredentials([usernamePassword(credentialsId: 'aws-cli', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+        //             sh '''
+        //                 aws --version
+        //                 yum install -y jq
+        //                 LATEST_TD_REVISION=$(aws ecs register-task-definition --cli-input-json file://$TASK_DEFINITION_FILE | jq '.taskDefinition.revision')
+        //                 aws ecs update-service --cluster $AWS_CLUSTER_NAME --service $AWS_SERVICE_NAME --task-definition $AWS_TASK_NAME:$LATEST_TD_REVISION
+        //                 aws ecs wait services-stable --cluster $AWS_CLUSTER_NAME --services $AWS_SERVICE_NAME
+        //             '''
+        //         }
+        //     }
+        // }
     }
 }
