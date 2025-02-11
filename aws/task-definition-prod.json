@@ -4,7 +4,7 @@
 	"containerDefinitions": [
 		{
 			"name": "learnjenkinsapp",
-			"image": "651706735547.dkr.ecr.us-east-1.amazonaws.com/learnjenkinsapp:latest",
+			"image": "651706735547.dkr.ecr.us-east-1.amazonaws.com/learnjenkinsapp:#APP_VERSION#",
 			"portMappings": [
 				{
 					"name": "nginx-80-tcp",
